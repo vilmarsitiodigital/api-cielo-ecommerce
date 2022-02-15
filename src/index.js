@@ -7,9 +7,9 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const hostname = "https://apisandbox.cieloecommerce.cielo.com.br";
-const merchantId = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-const merchantKey = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+const hostname = "https://api.cieloecommerce.cielo.com.br";
+const merchantId = "XXXXXX";
+const merchantKey = "XXXXX";
 
 app.post("/sales", async (request, response) => {
   const url = `${hostname}/1/sales/`;
@@ -27,12 +27,20 @@ app.post("/sales", async (request, response) => {
       data: request.body,
     });
 
-    console.log("SUCCESS ", axiosResponse.data);
-  } catch (error) {
-    console.log("ERROR ", error.response.data);
-  }
+    if (!axiosResponse.data) {
+      return response.status(404).json({ error: "Invalid return request" });
+    }
 
-  return response.status(201).json();
+    return response.status(201).json(axiosResponse.data);
+  } catch (error) {
+    if (!error.response.data[0].Code) {
+      return response.status(404).json({ error: "Invalid error code" });
+    }
+
+    response.status(404).json({
+      error: `Code: ${error.response.data[0].Code} | Message: ${error.response.data[0].Message}`,
+    });
+  }
 });
 
 module.exports = {
